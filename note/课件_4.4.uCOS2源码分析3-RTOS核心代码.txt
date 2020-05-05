@@ -1,0 +1,213 @@
+***********《朱有鹏老师单片机完全学习系列课程》 ***********
+*********** 第4季：uCOS2和uCOS3在STM32F3和F4平台源码全解 **
+*********** 4.4.uCOS2源码分析3-RTOS核心代码     ***********
+
+--------------------------------------------------------
+本课程由朱有鹏物联网大讲堂录制并拥有完整版权，翻录必究
+--------------------------------------------------------
+第一部分、章节目录
+4.4.1.ucos_ii.h源码分析1
+4.4.2.ucos_ii.h源码分析2
+4.4.3.os_time.c源码分析1
+4.4.4.os_time.c源码分析2
+4.4.5.os_task.c源码分析1
+4.4.6.os_task.c源码分析2
+4.4.7.os_task.c源码分析3
+4.4.8.os_task.c源码分析4
+4.4.9.os_task.c源码分析5
+4.4.10.os_task.c源码分析6
+4.4.11.os_task.c源码分析7
+4.4.12.os_task.c源码分析8
+4.4.13.os_core.c源码分析1
+4.4.14.os_core.c源码分析2
+4.4.15.os_core.c源码分析3
+4.4.16.os_core.c源码分析4
+4.4.17.os_core.c源码分析5
+4.4.18.os_core.c源码分析6
+
+
+
+第二部分、章节介绍
+4.4.1.ucos_ii.h源码分析1
+	本节分析ucos_ii.h头文件，该文件中最重要的就是TCB结构体和一堆全局变量的定义了。
+4.4.2.ucos_ii.h源码分析2
+	本节接上节继续分析ucos_ii.h中定义的全局变量，这些概念弄清晰对我们继续分析ucos2源码很有帮助。
+4.4.3.os_time.c源码分析1
+	本节开始分析os_time.c，主要是任务延时函数OSTimeDly的实现原理。要注意和之前讲过的任务切换的部分相结合。
+4.4.4.os_time.c源码分析2
+	本节继续讲解os_time.c，主要是OSTimeDlyResume函数涉及到的细节。
+4.4.5.os_task.c源码分析1
+	本节开始讲解os_task.c，主要是任务切换优先级使用的OSTaskChangePrio函数的实现细节。
+4.4.6.os_task.c源码分析2
+	本节继续分析os_task.c，主要是任务创建的函数OSTaskCreate的实现细节。
+4.4.7.os_task.c源码分析3
+	本节继续分析os_task.c，主要是任务创建的函数OSTaskCreate的实现细节剩余部分。
+4.4.8.os_task.c源码分析4
+	本节主要讲解任务创建的扩展版本函数OSTaskCreateExt
+4.4.9.os_task.c源码分析5
+	本节主要讲解ucos2的任务删除函数OSTaskDel及其实现机制。
+4.4.10.os_task.c源码分析6
+	本节主要讲解ucos2中请求其他任务释放资源并删除自身的函数OSTaskDelReq。
+4.4.11.os_task.c源码分析7	
+	本节主要讲解OSTaskNameGet/Set和OSTaskSuspend/Resume等几个函数。
+4.4.12.os_task.c源码分析8
+	本节主要讲解OSTaskStkChk和OSTaskStkClr等几个函数。
+4.4.13.os_core.c源码分析1
+	本节开始分析os_core.c，主要讲了OSEventNameSet/Get等函数。
+4.4.14.os_core.c源码分析2
+	本节主要分析OSEventPendMulti函数，并且看了os_event结构体和sem、mbox、q等message-type events的pend过程。
+4.4.15.os_core.c源码分析3
+	本节接着分析OSEventPendMulti函数。
+4.4.16.os_core.c源码分析4
+	本节开始分析OS_Init函数，并且详细分析了其中创建的2个任务：空闲任务和统计任务。
+4.4.17.os_core.c源码分析5	
+	本节接着分析OS_Init函数，重点是讲解统计任务实现的原理和源码。
+4.4.18.os_core.c源码分析6
+	本节分析了os_core.c中剩余的函数，结束了核心部分的源码分析。
+
+	
+	
+第三部分、随堂记录
+4.4.1_2.ucos_ii.h源码分析1_2
+(1)uCOS2中所有全局变量的定义和注释
+OSCtxSwCtr		uCOS2的任务切换次数的计数
+OSEventFreeList						event空闲链表指针
+OSEventTbl[OS_MAX_EVENTS]			全局event数组
+OSFlagTbl[OS_MAX_FLAGS]
+OSFlagFreeList
+
+#任务状态相关的				
+OSCPUUsage					CPU使用率			
+OSIdleCtrMax				1秒内空闲计数器的最大值
+OSIdleCtrRun				1秒内空闲计数器跑到了多少
+OSStatRdy					flag变量（标志位、标志变量、旗标变量）指示统计任务当前状态是否rdy
+OSTaskStatStk[OS_TASK_STAT_STK_SIZE]		统计任务的任务栈
+OSTaskIdleStk[OS_TASK_IDLE_STK_SIZE]		空闲任务的任务栈
+
+OSIntNesting				中断嵌套级别，0表示非中断isr，1表示1层中断
+OSLockNesting				多任务锁嵌套级别
+OSPrioCur					当前正在运行的任务的优先级
+OSPrioHighRdy				当前处于就绪态的任务中优先级最高的那个任务的优先级
+OSUnMapTbl[256]				常数数组，和计算当前OSPrioHighRdy有关
+
+OSRdyGrp					就绪组
+OSRdyTbl[OS_RDY_TBL_SIZE]	就绪表
+
+OSRunning					OS启动尚未完成初始化时为0，初始化ok可以开始调度了设置为1
+OSTaskCtr					表示当前一共创建了几个任务			
+OSIdleCtr					空闲计数器，跟统计任务计算cpu空闲使用率等有关
+OSTime						系统时间记录（以tick为单位）
+
+
+OSTCBCur					当前任务的TCB结构体指针
+OSTCBFreeList				指向当前处于空闲状态的TCB的指针
+OSTCBTbl[OS_MAX_TASKS + OS_N_SYS_TASKS]		系统中事先定义好的所有任务的TCB数组
+
+OSMemFreeList
+OSMemTbl[OS_MAX_MEM_PART]
+
+OSQFreeList
+OSQTbl[OS_MAX_QS]
+
+
+4.4.3_4.os_time.c源码分析1_2
+(1)PEND和NOTPEND（PEND_OK/PEND_TO）等对应，PEND关注的是当前任务在等待某个EVENT（sem、mutex等）
+(2)SUSPEND和RDY对应，用来描述任务当前的状态的，RDY表示任务处于就绪态，SUSPEND表示任务处于非就绪态（挂起态）
+
+
+4.4.5_6_7.os_task.c源码分析1_2_3
+(1)OSTCBList这个全局变量指向一个双向链表，这个双向链表中的每一个元素都是一个已经被创建了个任务的TCB结构体。OSTCBList永远指向最新创建的一个任务，而双向链表的新元素插入方式是头插入，所以得出结论：OSTCBList指向所有任务双向链表的链表头。
+
+
+4.4.8_9.os_task.c源码分析4_5
+4.4.8.1、OSTaskCreateExt函数
+4.4.8.2、OSTaskDel
+(1)ucos2任务有以下几种状态：运行态（活动态）、就绪态、挂起态、休眠态
+
+
+4.4.10.os_task.c源码分析6
+4.4.10.1、OSTaskDelReq函数
+(1)这个函数的唯一用途就是：让任务A申请去删除有资源未释放的任务B的。他不能用于一个任务删除自身。
+(2)这个函数工作时在任务A和B中都需要被调用。实现就是围绕TCB结构体中的OS_ERR_TASK_DEL_REQ元素来的。任务A中给这个元素赋值，任务B中通过查这个元素的值来确定要不要删除自己。
+
+
+4.4.11_12.os_task.c源码分析7_8
+
+
+4.4.13_14.os_core.c源码分析1_2
+
+
+4.4.15.os_core.c源码分析3
+OS_EventTaskWaitMulti函数的功能：通过遍历将当前任务在pevents_wait所有的事件的内部的事件表（pevent->OSEventTbl和pevent->OSEventGrp）中做标记挂接，然后将当前任务从就绪表中移除。
+
+
+4.4.16_17.os_core.c源码分析4_5
+总结一下：OS_Init就做了2件事情：一个是初始化全局变量、另一个是创建2系统系统级任务（空任务和统计任务）
+
+
+4.4.18.os_core.c源码分析6
+os_core.c中核心内容：
+(1)event有关的等待和唤醒操作，理解起来难一点
+(2)os_sched有关的一些函数
+(3)os_init有关的函数
+(4)2个系统任务：空任务、统计任务
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
