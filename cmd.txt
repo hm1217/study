@@ -1,0 +1,33 @@
+1.
+runsim -block nr_para/nr_para_trc -case sim_trc_chn_pbch_test -simarg +QCL -fsdb
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191101/SSBcases_nonRebuild
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191101/SSB_rbld_TRC
+
+2.
+runsim -block nr_para/nr_para_trc -case sim_trc_chn_trs_test -simarg +QCL -fsdb
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191108/TRSTRC1b
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191112/TRScases_update1_JackyWu
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191223/coverageTRC
+
+3.
+runsim -block nr_para/nr_para_trc -case sim_trc_chn_pbch_test -simarg +QCL -simarg +NEW_CASE -fsdb
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191207/TRC_WB_Interface/PBCH
+
+4.
+runsim -block nr_para/nr_para_trc -case sim_trc_chn_csirs_test -simarg +QCL -simarg +NEW_CASE -fsdb
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191207/TRC_WB_Interface/csi_top_1203
+
+5.
+cpr:runsim -block nr_para/nr_para_trc -case sim_trc_chn_csirs_test -simarg +QCL -fsdb
+sermeas:runsim -block nr_para/nr_para_trc -case sim_trc_chn_csirs_test -simarg +QCL -simarg +TEST_MODE3 -fsdb
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191108/CSIRScases_update1
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191108/scenario2b
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191118/csi_top_1105_Qcl
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191123/csi_top_1105
+/pub/vector4/nr_v2/nr_para/trc/trc_top/20191203/csi_top_1203
+
+6.
+runsim -block nr_para/nr_para_trc -case sim_trc_chn_csirs_test -simarg +QCL -simarg +QCL_FORCE_CHECK -fsdb
+/pub/vector4/nr_v2/nr_para/trc/trc_top/201920200113
+
+
